@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { Toaster, toast } from "react-hot-toast";
 import ReactPaginate from "react-paginate";
 import styles from "./App.module.css";
 import { type Movie } from "../../types/movie";
 import { useMoviesQuery } from "../Query/Query";
+
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import Loader from "../Loader/Loader";
@@ -15,13 +17,23 @@ const App = () => {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movies, setMovies] = useState<Movie[]>([]);
 
-  const { data, isLoading, error } = useMoviesQuery(query, page);
+  const { data, isPending, isError, isSuccess } = useMoviesQuery(query, page, {
+    enabled: query.trim().length > 0,
+    keepPreviousData: true,
+    placeholderData: (previous: string) => previous,
+  });
 
   useEffect(() => {
     if (data?.results) {
       setMovies(data.results);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (isSuccess && data?.results.length === 0) {
+      toast("No results found");
+    }
+  }, [isSuccess, data]);
 
   function handleSearch(query: string): void {
     setQuery(query);
@@ -39,9 +51,10 @@ const App = () => {
   return (
     <div>
       <h1>Movie Search</h1>
+      <Toaster />
 
-      {isLoading && <p>Loading...</p>}
-      {error && <p>Something went wrong</p>}
+      {isPending && <p>Loading...</p>}
+      {isError && <p>Something went wrong</p>}
 
       {data && data.total_pages > 1 && (
         <ReactPaginate
@@ -58,9 +71,9 @@ const App = () => {
       )}
       <SearchBar onSubmit={handleSearch} />
       <main>
-        {isLoading && <Loader />}
-        {error && <ErrorMessage />}
-        {!isLoading && !error && movies.length > 0 && (
+        {isPending && <Loader />}
+        {isError && <ErrorMessage />}
+        {!isPending && !isError && movies.length > 0 && (
           <MovieGrid movies={movies} onSelect={handleSelectMovie} />
         )}
       </main>

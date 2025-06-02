@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { MovieResponse } from "../types/movie";
+import { useQuery } from "@tanstack/react-query";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const API_TOKEN =
@@ -21,4 +22,27 @@ export const fetchMovies = async (
     },
   });
   return response.data;
+};
+
+export const useMoviesQuery = (
+  query: string,
+  page: number,
+  {
+    enabled,
+
+    placeholderData,
+  }: {
+    enabled: boolean;
+    keepPreviousData: string;
+    placeholderData?: MovieResponse;
+  }
+) => {
+  return useQuery({
+    queryKey: ["movies", query, page],
+    queryFn: () => fetchMovies(query, page),
+    staleTime: 1000 * 60 * 5,
+    enabled,
+
+    placeholderData,
+  });
 };
