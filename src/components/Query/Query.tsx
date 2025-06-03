@@ -7,8 +7,7 @@ export const useMoviesQuery = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _p0?: {
     enabled: boolean;
-    keepPreviousData: boolean;
-    placeholderData: (previous: string) => string;
+    placeholderData: <T>(previousData: T | undefined) => T | undefined;
   }
 ) => {
   return useQuery({

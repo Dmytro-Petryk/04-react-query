@@ -4,6 +4,7 @@ import ReactPaginate from "react-paginate";
 import styles from "./App.module.css";
 import { type Movie } from "../../types/movie";
 import { useMoviesQuery } from "../Query/Query";
+import { keepPreviousData } from "@tanstack/react-query";
 
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
@@ -19,8 +20,7 @@ const App = () => {
 
   const { data, isPending, isError, isSuccess } = useMoviesQuery(query, page, {
     enabled: query.trim().length > 0,
-    keepPreviousData: true,
-    placeholderData: (previous: string) => previous,
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -52,10 +52,14 @@ const App = () => {
     <div>
       <h1>Movie Search</h1>
       <Toaster />
-
-      {isPending && <p>Loading...</p>}
-      {isError && <p>Something went wrong</p>}
-
+      <SearchBar onSubmit={handleSearch} />
+      <main>
+        {isPending && <Loader />}
+        {isError && <ErrorMessage />}
+        {!isPending && !isError && movies.length > 0 && (
+          <MovieGrid movies={movies} onSelect={handleSelectMovie} />
+        )}
+      </main>
       {data && data.total_pages > 1 && (
         <ReactPaginate
           pageCount={data.total_pages}
@@ -69,14 +73,6 @@ const App = () => {
           previousLabel="←"
         />
       )}
-      <SearchBar onSubmit={handleSearch} />
-      <main>
-        {isPending && <Loader />}
-        {isError && <ErrorMessage />}
-        {!isPending && !isError && movies.length > 0 && (
-          <MovieGrid movies={movies} onSelect={handleSelectMovie} />
-        )}
-      </main>
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
